@@ -1,0 +1,398 @@
+﻿| package |
+package := Package name: 'Method Spies'.
+package paxVersion: 1;
+	basicComment: 'Development Environment enhancements:
+ - Method Spies (intelligent breakpoints)
+ - Step-Into-Block debugger enhancemment
+
+© Solutions Software/John Aspinall 2018
+Provided under the same licence terms as Dolphin Smalltalk 7'.
+
+package basicScriptAt: #postinstall put: 'SmalltalkSystem current 
+	methodWorkspaceClass: SSWMethodWorkspace;
+	debuggerClass: SSWDebugger'.
+package basicScriptAt: #preuninstall put: 'SmalltalkSystem current 
+	methodWorkspaceClass: MethodWorkspace;
+	debuggerClass: Debugger'.
+
+package classNames
+	add: #SSWDebugger;
+	add: #SSWMethodSpy;
+	add: #SSWMethodSpyManager;
+	add: #SSWMethodSpyPresenter;
+	add: #SSWMethodWorkspace;
+	add: #SSWSmalltalkSpyParser;
+	add: #SSWSpiedMethodsCategory;
+	add: #SSWSpyMethod;
+	add: #SSWSpyMethodNode;
+	yourself.
+
+package methodNames
+	add: #BlockFrame -> #argumentNames;
+	add: #CompilationResult -> #textMap:;
+	add: #CompiledCode -> #isSpy;
+	add: #CompiledCode -> #primByteCodes;
+	add: #CompiledCode -> #primByteCodes:;
+	add: #CompiledMethod -> #asSpyMethodWithSpies:;
+	add: #CompiledMethod -> #beSpiedOnBy:;
+	add: #CompiledMethod -> #beSpiedOnByAll:;
+	add: #CompiledMethod -> #hasBreakpoint;
+	add: #CompiledMethod -> #methodSpies;
+	add: #CompiledMethod -> #methodSpyManager;
+	add: #CompiledMethod -> #recompileWithSpy:;
+	add: #CompiledMethod -> #sourceWithSpies:;
+	add: #CompiledMethod -> #spiedMethod;
+	add: #CompiledMethod -> #testSourceWithSpies:;
+	add: #SmalltalkSystem -> #methodWorkspaceClass:;
+	add: #SmalltalkSystem -> #onMethodTransparentlyUpdated:;
+	add: #StackFrame -> #argumentNames;
+	add: #StAssignmentNode -> #isSpyable;
+	add: #StMessageNode -> #isSpyable;
+	add: #StProgramNode -> #firstSpyableNode;
+	add: #StProgramNode -> #identityIndexOfNode:;
+	add: #StProgramNode -> #isSpyable;
+	add: #StProgramNode -> #nodeAtIndex:;
+	add: #StProgramNode -> #spySourceInterval;
+	add: #StReturnNode -> #isSpyable;
+	yourself.
+
+package binaryGlobalNames: (Set new
+	yourself).
+
+package globalAliases: (Set new
+	yourself).
+
+package setPrerequisites: (IdentitySet new
+	add: '..\Core\Object Arts\Dolphin\IDE\Base\Development System';
+	add: '..\Core\Object Arts\Dolphin\Base\Dolphin';
+	add: '..\Core\Object Arts\Dolphin\MVP\Base\Dolphin Basic Geometry';
+	add: '..\Core\Object Arts\Dolphin\MVP\Views\Control Bars\Dolphin Control Bars';
+	add: '..\Core\Object Arts\Dolphin\MVP\Base\Dolphin MVP Base';
+	add: '..\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Prompter';
+	add: '..\Core\Object Arts\Dolphin\MVP\Views\Scintilla\Dolphin Scintilla View';
+	add: '..\Core\Object Arts\Dolphin\MVP\Presenters\Text\Dolphin Text Presenter';
+	add: '..\Core\Object Arts\Dolphin\MVP\Icons\Dolphin Text Tile Icons';
+	add: '..\Core\Object Arts\Dolphin\MVP\Gdiplus\Gdiplus';
+	add: '..\Core\Object Arts\Dolphin\MVP\Icons\Internal Bitmaps and Icons';
+	add: '..\Core\Contributions\Refactory\Refactoring Browser\Parser\RBParser';
+	add: '..\Core\Object Arts\Dolphin\System\Compiler\Smalltalk Parser';
+	yourself).
+
+package!
+
+"Class Definitions"!
+
+Object subclass: #SSWMethodSpy
+	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+VirtualMethodCategory subclass: #SSWSpiedMethodsCategory
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+CompiledMethod variableSubclass: #SSWSpyMethod
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Model subclass: #SSWMethodSpyManager
+	instanceVariableNames: 'areSpiesEnabled'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: 'current'!
+Presenter subclass: #SSWMethodSpyPresenter
+	instanceVariableNames: 'spySourcePresenter'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+Debugger subclass: #SSWDebugger
+	instanceVariableNames: 'debugState'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+MethodWorkspace subclass: #SSWMethodWorkspace
+	instanceVariableNames: 'lastPlainText unmodifiedParseTree'
+	classVariableNames: ''
+	poolDictionaries: 'SmalltalkParseErrorCodes'
+	classInstanceVariableNames: ''!
+SmalltalkParser subclass: #SSWSmalltalkSpyParser
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+StMethodNode subclass: #SSWSpyMethodNode
+	instanceVariableNames: 'methodSpies'
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+
+"Global Aliases"!
+
+
+"Loose Methods"!
+
+!BlockFrame methodsFor!
+
+argumentNames
+
+	"Cannot reliably extract these for a block. Make some up"
+
+	^(1 to: self argumentCount) collect: [ :argIndex | 'arg', argIndex displayString]! !
+!BlockFrame categoriesFor: #argumentNames!accessing!public! !
+
+!CompilationResult methodsFor!
+
+textMap: anOrderedCollectionOfAssociation 
+	textMap := anOrderedCollectionOfAssociation! !
+!CompilationResult categoriesFor: #textMap:!accessing!public! !
+
+!CompiledCode methodsFor!
+
+isSpy
+"B"
+	^false!
+
+primByteCodes
+
+	^byteCodes!
+
+primByteCodes: anObject
+
+	byteCodes := anObject! !
+!CompiledCode categoriesFor: #isSpy!public!testing! !
+!CompiledCode categoriesFor: #primByteCodes!accessing!public! !
+!CompiledCode categoriesFor: #primByteCodes:!accessing!public! !
+
+!CompiledMethod methodsFor!
+
+asSpyMethodWithSpies: aCollection
+
+	| spyMethod |
+
+	spyMethod := SSWSpyMethod new: self size.
+	1 to: self size do: [ :index | spyMethod at: index put: (self at: index)].
+
+	^spyMethod 
+		header: self header;
+		primByteCodes: self primByteCodes;
+		selector: self selector;
+		sourceDescriptor: self sourceDescriptor;
+		methodClass: self methodClass;
+		methodSpies: aCollection;
+		infiltrateWithSpies;
+		yourself!
+
+beSpiedOnBy: aMethodSpy
+
+	| methodSpies |
+
+	methodSpies := self methodSpies copy.
+	methodSpies add: aMethodSpy.
+
+	^self beSpiedOnByAll: methodSpies!
+
+beSpiedOnByAll: methodSpies
+
+	| spiedSource compResult spyMethod |
+
+	"Test for compilation errors"
+	self methodClass compilerClass compile: (self testSourceWithSpies: methodSpies) in: self methodClass flags: 0.
+
+	"Get the real source and retest (should not fail)"
+	spiedSource := self sourceWithSpies: methodSpies.
+	spiedSource isNil ifTrue: [CompilerErrorNotification signal: 'Invalid spy source'].
+
+	compResult := self methodClass compilerClass compile: spiedSource in: self methodClass flags: 0.
+	spyMethod := compResult method.
+	spyMethod isNil ifTrue: [CompilerErrorNotification signal: 'Invalid spy source'].
+
+	spyMethod become: (spyMethod asSpyMethodWithSpies: methodSpies).
+	spyMethod 
+		contactSpies;
+		sourceDescriptor: self sourceDescriptor;
+		spiedMethod: self spiedMethod.
+
+	compResult 
+		method: spyMethod;
+		oldMethod: (self methodClass methodDictionary at: self selector).
+	self methodClass methodDictionary at: self selector put: spyMethod.
+	self methodSpyManager spiesCompiledIn: compResult!
+
+hasBreakpoint
+
+	^false!
+
+methodSpies
+
+	^SortedCollection new!
+
+methodSpyManager
+
+	^SSWMethodSpyManager current!
+
+recompileWithSpy: aMethodSpy
+
+	self beSpiedOnBy: aMethodSpy!
+
+sourceWithSpies: aCollection
+
+	| sourceRead sourceWrite spies spyCount |
+
+	sourceRead := ReadStream on: self getSource.
+	sourceWrite := WriteStream on: (String new: sourceRead size).
+	spies := ReadStream on: aCollection.
+	spyCount := 0.
+
+	[spies atEnd] whileFalse:
+		[| nextSpy nextSource |
+		nextSpy := spies next.
+		spyCount := spyCount + 1.
+		[sourceRead position < (nextSpy methodSourcePosition - 1)] whileTrue: 
+			[sourceWrite nextPut: sourceRead next].
+		nextSource := nextSpy spySourceAt: sourceWrite position spyCount: spyCount.
+		nextSource isNil ifTrue: [^nil].
+		sourceWrite nextPutAll: nextSource].
+
+	sourceWrite nextPutAll: sourceRead upToEnd.
+
+	^sourceWrite contents!
+
+spiedMethod
+
+	^self!
+
+testSourceWithSpies: aCollection
+
+	"Return a 'test' version of the receiver's source, 
+	with the source of each spy directly in the body of the method.
+	This allows us to test for compilation errors, 
+	unlike sourceWithSpies: which only includes a call to the spy source"
+
+	| sourceRead sourceWrite spies |
+
+	sourceRead := ReadStream on: self getSource.
+	sourceWrite := WriteStream on: (String new: sourceRead size).
+	spies := ReadStream on: aCollection.
+
+	[spies atEnd] whileFalse:
+		[| nextSpy |
+		nextSpy := spies next.
+		[sourceRead position < (nextSpy methodSourcePosition - 1)] whileTrue: 
+			[sourceWrite nextPut: sourceRead next].
+		sourceWrite 
+			nextPut: $[;
+			nextPutAll: nextSpy spySourceForTest;
+			nextPutAll: '].'].
+
+	sourceWrite nextPutAll: sourceRead upToEnd.
+
+	^sourceWrite contents! !
+!CompiledMethod categoriesFor: #asSpyMethodWithSpies:!compiling!public! !
+!CompiledMethod categoriesFor: #beSpiedOnBy:!compiling!public! !
+!CompiledMethod categoriesFor: #beSpiedOnByAll:!compiling!public! !
+!CompiledMethod categoriesFor: #hasBreakpoint!public!testing! !
+!CompiledMethod categoriesFor: #methodSpies!accessing!public! !
+!CompiledMethod categoriesFor: #methodSpyManager!accessing!public! !
+!CompiledMethod categoriesFor: #recompileWithSpy:!compiling!public! !
+!CompiledMethod categoriesFor: #sourceWithSpies:!accessing!public! !
+!CompiledMethod categoriesFor: #spiedMethod!accessing!public! !
+!CompiledMethod categoriesFor: #testSourceWithSpies:!accessing!public! !
+
+!SmalltalkSystem methodsFor!
+
+methodWorkspaceClass: toolClass
+	"Set the class of presenter to be used for method source workspaces in the various tools
+	(e.g. Debugger and method browser)."
+
+	methodWorkspaceClass := toolClass!
+
+onMethodTransparentlyUpdated: aCompilationResult 
+	
+	"Transparent change therefore do not notify the package manager"
+
+	self trigger: #methodUpdated: with: aCompilationResult! !
+!SmalltalkSystem categoriesFor: #methodWorkspaceClass:!options!public! !
+!SmalltalkSystem categoriesFor: #onMethodTransparentlyUpdated:!event handling!public! !
+
+!StackFrame methodsFor!
+
+argumentNames
+
+	^self method parseTree argumentNames! !
+!StackFrame categoriesFor: #argumentNames!accessing!public! !
+
+!StAssignmentNode methodsFor!
+
+isSpyable
+
+	^true! !
+!StAssignmentNode categoriesFor: #isSpyable!public!testing! !
+
+!StMessageNode methodsFor!
+
+isSpyable
+
+	^true! !
+!StMessageNode categoriesFor: #isSpyable!public!testing! !
+
+!StProgramNode methodsFor!
+
+firstSpyableNode
+
+	self nodesDo: [ :each | each isSpyable ifTrue: [^each statementNode]].
+
+	"Empty method"
+	^nil!
+
+identityIndexOfNode: aNode
+
+	| index |
+
+	index := 1.
+
+	self nodesDo: [ :node | node == aNode ifTrue: [^index]. index := index + 1].
+
+	^nil!
+
+isSpyable
+
+	^false!
+
+nodeAtIndex: anInteger
+
+	| index |
+
+	index := 1.
+
+	self nodesDo: [ :node | index = anInteger ifTrue: [^node]. index := index + 1].
+
+	^nil!
+
+spySourceInterval
+
+	| methodBody topNodeIntervals |
+
+	methodBody := self methodNode body.
+	self parent = methodBody ifFalse: [^self start to: (self stop + 1)].
+
+	topNodeIntervals := methodBody children collect: [ :each | each sourceInterval].
+	^self sourceInterval = topNodeIntervals last
+		ifTrue: [self start to: methodBody stop + 1]
+		ifFalse: [self start to: (topNodeIntervals after: self sourceInterval) start - 1]! !
+!StProgramNode categoriesFor: #firstSpyableNode!accessing!public! !
+!StProgramNode categoriesFor: #identityIndexOfNode:!accessing!public! !
+!StProgramNode categoriesFor: #isSpyable!public!testing! !
+!StProgramNode categoriesFor: #nodeAtIndex:!accessing!public! !
+!StProgramNode categoriesFor: #spySourceInterval!accessing!public! !
+
+!StReturnNode methodsFor!
+
+isSpyable
+
+	^true! !
+!StReturnNode categoriesFor: #isSpyable!public!testing! !
+
+"End of package definition"!
+
