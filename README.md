@@ -1,4 +1,4 @@
-# MethodSpies
+# Method Spies
 Method Spies (intelligent breakpoints) for [Dolphin Smalltalk 7.1](https://github.com/dolphinsmalltalk/Dolphin)
 
 ## Getting Started
