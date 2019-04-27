@@ -62,21 +62,21 @@ package binaryGlobalNames: (Set new
 package globalAliases: (Set new
 	yourself).
 
-package setPrerequisites: (IdentitySet new
-	add: '..\Core\Object Arts\Dolphin\IDE\Base\Development System';
-	add: '..\Core\Object Arts\Dolphin\Base\Dolphin';
-	add: '..\Core\Object Arts\Dolphin\MVP\Base\Dolphin Basic Geometry';
-	add: '..\Core\Object Arts\Dolphin\MVP\Views\Control Bars\Dolphin Control Bars';
-	add: '..\Core\Object Arts\Dolphin\MVP\Base\Dolphin MVP Base';
-	add: '..\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Prompter';
-	add: '..\Core\Object Arts\Dolphin\MVP\Views\Scintilla\Dolphin Scintilla View';
-	add: '..\Core\Object Arts\Dolphin\MVP\Presenters\Text\Dolphin Text Presenter';
-	add: '..\Core\Object Arts\Dolphin\MVP\Icons\Dolphin Text Tile Icons';
-	add: '..\Core\Object Arts\Dolphin\MVP\Gdiplus\Gdiplus';
-	add: '..\Core\Object Arts\Dolphin\MVP\Icons\Internal Bitmaps and Icons';
-	add: '..\Core\Contributions\Refactory\Refactoring Browser\Parser\RBParser';
-	add: '..\Core\Object Arts\Dolphin\System\Compiler\Smalltalk Parser';
-	yourself).
+package setPrerequisites: #(
+	'..\Core\Object Arts\Dolphin\IDE\Base\Development System'
+	'..\Core\Object Arts\Dolphin\Base\Dolphin'
+	'..\Core\Object Arts\Dolphin\MVP\Base\Dolphin Basic Geometry'
+	'..\Core\Object Arts\Dolphin\MVP\Views\Control Bars\Dolphin Control Bars'
+	'..\Core\Object Arts\Dolphin\Base\Dolphin Message Box'
+	'..\Core\Object Arts\Dolphin\MVP\Base\Dolphin MVP Base'
+	'..\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Prompter'
+	'..\Core\Object Arts\Dolphin\MVP\Views\Scintilla\Dolphin Scintilla View'
+	'..\Core\Object Arts\Dolphin\MVP\Presenters\Text\Dolphin Text Presenter'
+	'..\Core\Object Arts\Dolphin\MVP\Icons\Dolphin Text Tile Icons'
+	'..\Core\Object Arts\Dolphin\MVP\Gdiplus\Gdiplus'
+	'..\Core\Object Arts\Dolphin\MVP\Icons\Internal Bitmaps and Icons'
+	'..\Core\Contributions\Refactory\Refactoring Browser\Parser\RBParser'
+	'..\Core\Object Arts\Dolphin\System\Compiler\Smalltalk Parser').
 
 package!
 
@@ -114,7 +114,7 @@ Debugger subclass: #SSWDebugger
 	classInstanceVariableNames: ''!
 MethodWorkspace subclass: #SSWMethodWorkspace
 	instanceVariableNames: 'lastPlainText unmodifiedParseTree'
-	classVariableNames: ''
+	classVariableNames: 'IndicatorStylesWithSpies'
 	poolDictionaries: 'SmalltalkParseErrorCodes'
 	classInstanceVariableNames: ''!
 SmalltalkParser subclass: #SSWSmalltalkSpyParser

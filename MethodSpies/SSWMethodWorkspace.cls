@@ -2,7 +2,7 @@
 
 MethodWorkspace subclass: #SSWMethodWorkspace
 	instanceVariableNames: 'lastPlainText unmodifiedParseTree'
-	classVariableNames: ''
+	classVariableNames: 'IndicatorStylesWithSpies'
 	poolDictionaries: 'SmalltalkParseErrorCodes'
 	classInstanceVariableNames: ''!
 SSWMethodWorkspace guid: (GUID fromString: '{648bbbf3-5dc4-4b25-b2fd-61a1f6a8e190}')!
@@ -194,9 +194,7 @@ onViewOpened
 
 	self view contextMenu
 		addSeparator;
-		addItem: self spySubmenu.
-
-	self setIndicatorsForSpies!
+		addItem: self spySubmenu!
 
 preserveSelectionDuring: aBlock
 
@@ -265,19 +263,6 @@ safeRecompile: aBlock
 		[ :exc |
 		MessageBox warning: ('Failed to compile: ', exc description).
 		exc return]!
-
-setIndicatorsForSpies
-
-	| currentStyles |
-
-	currentStyles := self view indicatorStyles.
-
-	(currentStyles anySatisfy: [ :each | each name = #SpyEnabled]) ifFalse: 
-		[self view indicatorStyles:
-			(currentStyles
-				add: (ScintillaIndicatorStyle new name: #SpyEnabled; styleName: #roundBox; forecolor: 16r0000FF; yourself);
-				add: (ScintillaIndicatorDefinition new name: #SpyDisabled; styleName: #roundBox; forecolor: 16r777777; yourself);
-				yourself)]!
 
 spyInsertNode
 
@@ -366,7 +351,6 @@ unmodifiedParseTree
 !SSWMethodWorkspace categoriesFor: #removeSpy!commands:spies!public! !
 !SSWMethodWorkspace categoriesFor: #resetSpy!commands:spies!public! !
 !SSWMethodWorkspace categoriesFor: #safeRecompile:!helpers!private! !
-!SSWMethodWorkspace categoriesFor: #setIndicatorsForSpies!helpers!private! !
 !SSWMethodWorkspace categoriesFor: #spyInsertNode!helpers:spies!private! !
 !SSWMethodWorkspace categoriesFor: #spyInsertNodeIn:!helpers:spies!private! !
 !SSWMethodWorkspace categoriesFor: #spySubmenu!accessing!public! !
@@ -374,4 +358,23 @@ unmodifiedParseTree
 !SSWMethodWorkspace categoriesFor: #toggleBreakpoint!commands:spies!public! !
 !SSWMethodWorkspace categoriesFor: #toggleSpyEnablement!commands:spies!public! !
 !SSWMethodWorkspace categoriesFor: #unmodifiedParseTree!accessing!private! !
+
+!SSWMethodWorkspace class methodsFor!
+
+indicatorStyles
+
+	^IndicatorStylesWithSpies ifNil: 
+		[IndicatorStylesWithSpies := 
+			super indicatorStyles copy
+				addAll: self spyIndicatorStyles;
+				yourself]!
+
+spyIndicatorStyles
+
+	^OrderedCollection new
+		add: (ScintillaIndicatorStyle new name: #SpyEnabled; style: #roundBox; forecolor: Color red; hoverStyle: #straightBox; hoverForecolor: Color red; yourself);
+		add: (ScintillaIndicatorStyle new name: #SpyDisabled; style: #roundBox; forecolor: Color darkGray; hoverStyle: #straightBox; hoverForecolor: Color darkGray; yourself);
+		yourself! !
+!SSWMethodWorkspace class categoriesFor: #indicatorStyles!public! !
+!SSWMethodWorkspace class categoriesFor: #spyIndicatorStyles!public! !
 

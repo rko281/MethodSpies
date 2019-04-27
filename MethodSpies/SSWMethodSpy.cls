@@ -282,7 +282,6 @@ spyExpressionFor: aFrame
 		compileForEvaluation: self commentedSpySource
 		in: aFrame receiver class
 		evaluationPools: (Array with: tempPool)
-		logged: false
 		flags: 0. 
 
 	^expression method 
