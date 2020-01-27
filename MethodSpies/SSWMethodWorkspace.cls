@@ -369,12 +369,22 @@ indicatorStyles
 				addAll: self spyIndicatorStyles;
 				yourself]!
 
+initialize
+
+	SmalltalkSystem current methodWorkspaceClass: SSWMethodWorkspace!
+
 spyIndicatorStyles
 
 	^OrderedCollection new
 		add: (ScintillaIndicatorStyle new name: #SpyEnabled; style: #roundBox; forecolor: Color red; hoverStyle: #straightBox; hoverForecolor: Color red; yourself);
 		add: (ScintillaIndicatorStyle new name: #SpyDisabled; style: #roundBox; forecolor: Color darkGray; hoverStyle: #straightBox; hoverForecolor: Color darkGray; yourself);
-		yourself! !
+		yourself!
+
+uninitialize
+
+	SmalltalkSystem current methodWorkspaceClass: MethodWorkspace! !
 !SSWMethodWorkspace class categoriesFor: #indicatorStyles!public! !
+!SSWMethodWorkspace class categoriesFor: #initialize!class initialization!public! !
 !SSWMethodWorkspace class categoriesFor: #spyIndicatorStyles!public! !
+!SSWMethodWorkspace class categoriesFor: #uninitialize!class initialization!public! !
 

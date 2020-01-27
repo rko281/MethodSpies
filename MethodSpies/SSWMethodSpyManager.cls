@@ -51,7 +51,18 @@ initialize
 
 	self areSpiesEnabled: true.
 
-	Smalltalk developmentSystem registerTool: self!
+	Smalltalk developmentSystem registerTool: self.
+
+	Debugger when: #viewOpened: send: #onDebuggerOpened: to: self!
+
+onDebuggerClosed: aDebugger
+	self removeEventsTriggeredFor: aDebugger
+!
+
+onDebuggerOpened: aDebugger
+
+	self when: #methodSpiesCompiledIn: send: #onMethodSpiesCompiledIn: to: aDebugger.
+	aDebugger when: #viewClosed send: #onDebuggerClosed: to: self with: aDebugger!
 
 onSpiesCompiledIn: aCompiledMethod
 
@@ -88,13 +99,17 @@ toggleAreSpiesEnabled
 
 uninitialize
 
-	Smalltalk developmentSystem unregisterTool: self! !
+	Smalltalk developmentSystem unregisterTool: self.
+
+	Debugger removeEventsTriggeredFor: self! !
 !SSWMethodSpyManager categoriesFor: #areSpiesEnabled!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #areSpiesEnabled:!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #compileSpy:!actions!public! !
 !SSWMethodSpyManager categoriesFor: #displayOn:!displaying!public! !
 !SSWMethodSpyManager categoriesFor: #icon!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #initialize!initializing!public! !
+!SSWMethodSpyManager categoriesFor: #onDebuggerClosed:!event handling!public! !
+!SSWMethodSpyManager categoriesFor: #onDebuggerOpened:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpiesCompiledIn:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpyChanged!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpyChangedIn:!event handling!public! !
@@ -113,6 +128,10 @@ current
 	current isNil ifTrue: [current := self new initialize].
 
 	^current!
+
+initialize
+
+	self current!
 
 publishedAspectsOfInstances
 	
@@ -141,6 +160,7 @@ uninitialize
 
 	self reset! !
 !SSWMethodSpyManager class categoriesFor: #current!accessing!public! !
+!SSWMethodSpyManager class categoriesFor: #initialize!class initialization!public! !
 !SSWMethodSpyManager class categoriesFor: #publishedAspectsOfInstances!constants!public! !
 !SSWMethodSpyManager class categoriesFor: #publishedEventsOfInstances!constants!public! !
 !SSWMethodSpyManager class categoriesFor: #reset!accessing!public! !

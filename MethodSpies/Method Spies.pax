@@ -1,22 +1,13 @@
 ﻿| package |
 package := Package name: 'Method Spies'.
 package paxVersion: 1;
-	basicComment: 'Development Environment enhancements:
- - Method Spies (intelligent breakpoints)
- - Step-Into-Block debugger enhancemment
+	basicComment: 'Method Spies (intelligent breakpoints)
 
-© Solutions Software/John Aspinall 2018
-Provided under the same licence terms as Dolphin Smalltalk 7'.
+© Solutions Software/John Aspinall 2020
+Provided under the same licence terms as Dolphin Smalltalk 7.1'.
 
-package basicScriptAt: #postinstall put: 'SmalltalkSystem current 
-	methodWorkspaceClass: SSWMethodWorkspace;
-	debuggerClass: SSWDebugger'.
-package basicScriptAt: #preuninstall put: 'SmalltalkSystem current 
-	methodWorkspaceClass: MethodWorkspace;
-	debuggerClass: Debugger'.
 
 package classNames
-	add: #SSWDebugger;
 	add: #SSWMethodSpy;
 	add: #SSWMethodSpyManager;
 	add: #SSWMethodSpyPresenter;
@@ -43,6 +34,7 @@ package methodNames
 	add: #CompiledMethod -> #sourceWithSpies:;
 	add: #CompiledMethod -> #spiedMethod;
 	add: #CompiledMethod -> #testSourceWithSpies:;
+	add: #Debugger -> #onMethodSpiesCompiledIn:;
 	add: #SmalltalkSystem -> #methodWorkspaceClass:;
 	add: #SmalltalkSystem -> #onMethodTransparentlyUpdated:;
 	add: #StackFrame -> #argumentNames;
@@ -54,6 +46,7 @@ package methodNames
 	add: #StProgramNode -> #nodeAtIndex:;
 	add: #StProgramNode -> #spySourceInterval;
 	add: #StReturnNode -> #isSpyable;
+	add: 'Object class' -> #test;
 	yourself.
 
 package binaryGlobalNames: (Set new
@@ -73,8 +66,6 @@ package setPrerequisites: #(
 	'..\Core\Object Arts\Dolphin\MVP\Views\Scintilla\Dolphin Scintilla View'
 	'..\Core\Object Arts\Dolphin\MVP\Presenters\Text\Dolphin Text Presenter'
 	'..\Core\Object Arts\Dolphin\MVP\Icons\Dolphin Text Tile Icons'
-	'..\Core\Object Arts\Dolphin\MVP\Gdiplus\Gdiplus'
-	'..\Core\Object Arts\Dolphin\MVP\Icons\Internal Bitmaps and Icons'
 	'..\Core\Contributions\Refactory\Refactoring Browser\Parser\RBParser'
 	'..\Core\Object Arts\Dolphin\System\Compiler\Smalltalk Parser').
 
@@ -104,11 +95,6 @@ Model subclass: #SSWMethodSpyManager
 	classInstanceVariableNames: 'current'!
 Presenter subclass: #SSWMethodSpyPresenter
 	instanceVariableNames: 'spySourcePresenter'
-	classVariableNames: ''
-	poolDictionaries: ''
-	classInstanceVariableNames: ''!
-Debugger subclass: #SSWDebugger
-	instanceVariableNames: 'debugState'
 	classVariableNames: ''
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
@@ -299,6 +285,31 @@ testSourceWithSpies: aCollection
 !CompiledMethod categoriesFor: #sourceWithSpies:!accessing!public! !
 !CompiledMethod categoriesFor: #spiedMethod!accessing!public! !
 !CompiledMethod categoriesFor: #testSourceWithSpies:!accessing!public! !
+
+!Debugger methodsFor!
+
+onMethodSpiesCompiledIn: aCompiledMethod
+
+	"Check for a relevant change in spies and restart if necessary"
+
+	self selectedMethod ifNotNil: 
+		[ :method |
+		"Only restart if the current method is affected"
+		(method methodClass = aCompiledMethod methodClass and: [method selector = aCompiledMethod selector]) ifTrue: [self restartMethod]]! !
+!Debugger categoriesFor: #onMethodSpiesCompiledIn:!event handling!public! !
+
+!Object class methodsFor!
+
+test
+
+	| x |
+
+	x := self printString.
+
+	(1 to: 100) do: [ :e | e printString].
+
+	^x! !
+!Object class categoriesFor: #test!initializing!private! !
 
 !SmalltalkSystem methodsFor!
 
