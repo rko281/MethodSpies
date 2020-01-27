@@ -15,4 +15,3 @@ Method Spies (intelligent breakpoints) for [Dolphin Smalltalk 7.1](https://githu
 
 ### Using Method Spies
 * In method source editor use F9 to toggle a simple breakpoint or use the Method Spies context menu item to set/edit more advanced breakpoints (one-time breakpoint, conditional breakpoint etc.)
-* Use new "Step into Block" Debugger toolbar button to quickly step into a block's code without needing to step into the internals of the evaluation method (do:, collect: etc.)
