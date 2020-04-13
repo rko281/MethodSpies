@@ -5,9 +5,8 @@ Method Spies (intelligent breakpoints) for [Dolphin Smalltalk 7.1](https://githu
 * Install [Dolphin Smalltalk 7.1](https://github.com/dolphinsmalltalk/Dolphin)
 
 ### Automated Installation
-* Download and install [GitHub Package Manager](https://github.com/rko281/GitHub)
-* Evaluate:
-  `GitHubPackageManager install: 'rko281/MethodSpies'`
+* To download and install, evaluate the following code snippet:    
+`SourceManager default fileItIn: (File readAllText: (URLMonLibrary default urlDownloadToCacheFile: 'https://raw.githubusercontent.com/rko281/MethodSpies/master/install.st'))`
 
 ### Manual Installation
 * This repository should be cloned/downloaded to your image directory
