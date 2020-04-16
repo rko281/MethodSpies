@@ -2,6 +2,7 @@
 package := Package name: 'Method Spies'.
 package paxVersion: 1;
 	basicComment: 'Method Spies (intelligent breakpoints)
+See Method Spies item in Method Workspace context menu
 
 © Solutions Software/John Aspinall 2020
 Provided under the same licence terms as Dolphin Smalltalk 7.1'.
@@ -28,6 +29,7 @@ package methodNames
 	add: #CompiledMethod -> #beSpiedOnBy:;
 	add: #CompiledMethod -> #beSpiedOnByAll:;
 	add: #CompiledMethod -> #hasBreakpoint;
+	add: #CompiledMethod -> #insertSpy:;
 	add: #CompiledMethod -> #methodSpies;
 	add: #CompiledMethod -> #methodSpyManager;
 	add: #CompiledMethod -> #recompileWithSpy:;
@@ -46,7 +48,6 @@ package methodNames
 	add: #StProgramNode -> #nodeAtIndex:;
 	add: #StProgramNode -> #spySourceInterval;
 	add: #StReturnNode -> #isSpyable;
-	add: 'Object class' -> #test;
 	yourself.
 
 package binaryGlobalNames: (Set new
@@ -59,6 +60,7 @@ package setPrerequisites: #(
 	'..\Core\Object Arts\Dolphin\IDE\Base\Development System'
 	'..\Core\Object Arts\Dolphin\Base\Dolphin'
 	'..\Core\Object Arts\Dolphin\MVP\Base\Dolphin Basic Geometry'
+	'..\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Choice Prompter'
 	'..\Core\Object Arts\Dolphin\MVP\Views\Control Bars\Dolphin Control Bars'
 	'..\Core\Object Arts\Dolphin\Base\Dolphin Message Box'
 	'..\Core\Object Arts\Dolphin\MVP\Base\Dolphin MVP Base'
@@ -74,7 +76,7 @@ package!
 "Class Definitions"!
 
 Object subclass: #SSWMethodSpy
-	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description'
+	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description targetObject'
 	classVariableNames: ''
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
@@ -210,6 +212,12 @@ hasBreakpoint
 
 	^false!
 
+insertSpy: aMethodSpy
+
+	aMethodSpy hasMethodSourcePosition ifFalse: [aMethodSpy methodSourceNode: self parseTree body statements first].
+
+	^self beSpiedOnBy: aMethodSpy!
+
 methodSpies
 
 	^SortedCollection new!
@@ -279,6 +287,7 @@ testSourceWithSpies: aCollection
 !CompiledMethod categoriesFor: #beSpiedOnBy:!compiling!public! !
 !CompiledMethod categoriesFor: #beSpiedOnByAll:!compiling!public! !
 !CompiledMethod categoriesFor: #hasBreakpoint!public!testing! !
+!CompiledMethod categoriesFor: #insertSpy:!compiling!public! !
 !CompiledMethod categoriesFor: #methodSpies!accessing!public! !
 !CompiledMethod categoriesFor: #methodSpyManager!accessing!public! !
 !CompiledMethod categoriesFor: #recompileWithSpy:!compiling!public! !
@@ -297,19 +306,6 @@ onMethodSpiesCompiledIn: aCompiledMethod
 		"Only restart if the current method is affected"
 		(method methodClass = aCompiledMethod methodClass and: [method selector = aCompiledMethod selector]) ifTrue: [self restartMethod]]! !
 !Debugger categoriesFor: #onMethodSpiesCompiledIn:!event handling!public! !
-
-!Object class methodsFor!
-
-test
-
-	| x |
-
-	x := self printString.
-
-	(1 to: 100) do: [ :e | e printString].
-
-	^x! !
-!Object class categoriesFor: #test!initializing!private! !
 
 !SmalltalkSystem methodsFor!
 

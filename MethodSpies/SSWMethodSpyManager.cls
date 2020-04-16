@@ -43,6 +43,17 @@ displayOn: aStream
 
 	aStream nextPutAll: 'Method Spies'!
 
+hookInspector: anInspector
+
+	anInspector renderers do: 
+		[ :each |
+		(each isKindOf: AspectInspector) ifTrue: 
+			[each aspectTreePresenter view contextMenu ifNotNil: 
+				[ :menu | 
+				menu
+					addSeparator;
+					addItem: (CommandMenuItem commandDescription: (ClosedCommandDescription command: (Message selector: #insertObjectBreakpointForInspecteeOf: argument: anInspector) description: 'Insert Breakpoint...' receiver: self))]]]!
+
 icon
 
 	^SSWMethodSpy icon!
@@ -53,7 +64,20 @@ initialize
 
 	Smalltalk developmentSystem registerTool: self.
 
-	Debugger when: #viewOpened: send: #onDebuggerOpened: to: self!
+	Debugger when: #viewOpened: send: #onDebuggerOpened: to: self.
+	FlipperInspector when: #viewOpened: send: #onInspectorOpened: to: self!
+
+insertObjectBreakpointFor: anObject
+
+	(ChoicePrompter multipleChoices: anObject class allSelectors asSortedCollection caption: 'Select method(s) to insert breakpoints for this object') ifNotNil: 
+		[ :selectors |
+		selectors do: 
+			[ :selector |
+			(anObject class lookupMethod: selector) insertSpy: (SSWMethodSpy objectBreakpointFor: anObject)]]!
+
+insertObjectBreakpointForInspecteeOf: anInspector
+
+	self insertObjectBreakpointFor: anInspector object!
 
 onDebuggerClosed: aDebugger
 	self removeEventsTriggeredFor: aDebugger
@@ -63,6 +87,15 @@ onDebuggerOpened: aDebugger
 
 	self when: #methodSpiesCompiledIn: send: #onMethodSpiesCompiledIn: to: aDebugger.
 	aDebugger when: #viewClosed send: #onDebuggerClosed: to: self with: aDebugger!
+
+onInspectorClosed: anInspector
+	self removeEventsTriggeredFor: anInspector
+!
+
+onInspectorOpened: anInspector
+
+	[self hookInspector: anInspector] postToInputQueue.
+	anInspector when: #viewClosed send: #onInspectorClosed: to: self with: anInspector!
 
 onSpiesCompiledIn: aCompiledMethod
 
@@ -85,38 +118,34 @@ spiesCompiledIn: aCompilationResult
 	SmalltalkSystem current onMethodTransparentlyUpdated: aCompilationResult.
 	self onSpiesCompiledIn: spyMethod!
 
-spyChanged
-
-	self onSpyChanged!
-
 spyChangedIn: aCompiledMethod
 
 	self onSpyChangedIn: aCompiledMethod!
-
-toggleAreSpiesEnabled
-
-	self areSpiesEnabled: self areSpiesEnabled not!
 
 uninitialize
 
 	Smalltalk developmentSystem unregisterTool: self.
 
-	Debugger removeEventsTriggeredFor: self! !
+	Debugger removeEventsTriggeredFor: self.
+	FlipperInspector removeEventsTriggeredFor: self! !
 !SSWMethodSpyManager categoriesFor: #areSpiesEnabled!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #areSpiesEnabled:!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #compileSpy:!actions!public! !
 !SSWMethodSpyManager categoriesFor: #displayOn:!displaying!public! !
+!SSWMethodSpyManager categoriesFor: #hookInspector:!operations!private! !
 !SSWMethodSpyManager categoriesFor: #icon!accessing!public! !
 !SSWMethodSpyManager categoriesFor: #initialize!initializing!public! !
+!SSWMethodSpyManager categoriesFor: #insertObjectBreakpointFor:!operations!private! !
+!SSWMethodSpyManager categoriesFor: #insertObjectBreakpointForInspecteeOf:!operations!private! !
 !SSWMethodSpyManager categoriesFor: #onDebuggerClosed:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onDebuggerOpened:!event handling!public! !
+!SSWMethodSpyManager categoriesFor: #onInspectorClosed:!event handling!public! !
+!SSWMethodSpyManager categoriesFor: #onInspectorOpened:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpiesCompiledIn:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpyChanged!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #onSpyChangedIn:!event handling!public! !
 !SSWMethodSpyManager categoriesFor: #spiesCompiledIn:!operations!public! !
-!SSWMethodSpyManager categoriesFor: #spyChanged!operations!public! !
 !SSWMethodSpyManager categoriesFor: #spyChangedIn:!operations!public! !
-!SSWMethodSpyManager categoriesFor: #toggleAreSpiesEnabled!actions!public! !
 !SSWMethodSpyManager categoriesFor: #uninitialize!initializing!public! !
 
 !SSWMethodSpyManager class methodsFor!

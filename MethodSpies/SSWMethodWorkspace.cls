@@ -116,8 +116,8 @@ insertConditionalBreakpoint
 		[self methodSpyManager compileSpy:
 			(SSWMethodSpy new 
 				method: self selectedMethod;
-				description: 'Conditional Breakpoint';
-				spySource: ('thisSpy breakIf: (<1s>)' expandMacrosWith: condition);
+				description: ('Conditional Breakpoint: <1s>' expandMacrosWith: condition);
+				spySource: ('thisSpy breakIf: [<1s>]' expandMacrosWith: condition);
 				methodSourceInterval: positionRange;
 				yourself)]!
 
@@ -371,7 +371,7 @@ indicatorStyles
 
 initialize
 
-	SmalltalkSystem current methodWorkspaceClass: SSWMethodWorkspace!
+	SmalltalkSystem current methodWorkspaceClass: self!
 
 spyIndicatorStyles
 

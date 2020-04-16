@@ -1,7 +1,7 @@
 ﻿"Filed out from Dolphin Smalltalk 7"!
 
 Object subclass: #SSWMethodSpy
-	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description'
+	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description targetObject'
 	classVariableNames: ''
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
@@ -67,11 +67,11 @@ break
 	"Bring up the Smalltalk debugger (suspending the active process) ...
 	Compared to halt this method will have the method containing the spy at the top, rather than the spy code"
 
-	Processor activeProcess halt: self hostFrame cause: self description!
+	Processor activeProcess halt: self hostFrame cause: self fullDescription!
 
-breakIf: aBoolean
+breakIf: aBlock
 
-	aBoolean ifTrue: [self break]!
+	aBlock value ifTrue: [self break]!
 
 captureArguments
 
@@ -85,7 +85,7 @@ captureArguments
 
 commentedSpySource
 
-	^'"<1s>"<N><2s>' expandMacrosWith: self description with: self spySource!
+	^'"<1s>"<N><2s>' expandMacrosWith: self fullDescription with: self spySource!
 
 context
 
@@ -118,20 +118,32 @@ displayOn: aStream
 		cr;
 		nextPutAll: 'Activations: ', self activationCount displayString!
 
+fullDescription
+
+	^self targetObject 
+		ifNil: [self description]
+		ifNotNil: [ :object | self description, ' for ', object debugPrintString]!
+
 handle
 
 	"Code is expressed this way to minimize additional frames in the debugger"
 	self spiedFrame ifNotNil: 
-		[ :frame |
-		self activated.
-		(self spyExpressionFor: frame) value: (self spyReceiverFor: frame) withArguments: #() .
-		self handledFor: frame]!
+		[ :frame || receiver |
+		receiver := self spyReceiverFor: frame.
+		(targetObject isNil or: [targetObject == receiver]) ifTrue: 
+			[self activated.
+			(self spyExpressionFor: frame) value: receiver withArguments: #() .
+			self handledFor: frame]]!
 
 handledFor: aFrame
 
 	"Spy handling finished. If we are running in the debugger arrange to drop back into the spied method"
 
 	aFrame process debugger ifNotNil: [ :debugger | debugger makeDebugFrame: aFrame]!
+
+hasMethodSourcePosition
+
+	^self methodSourceInterval notNil!
 
 hostFrame
 
@@ -181,12 +193,6 @@ isLocallyEnabled: aBoolean
 	isLocallyEnabled := aBoolean
 !
 
-isVirgin
-
-	"Has this spy never been activated?"
-
-	^self activationCount <= 1!
-
 method
 
 	"method stores the CompiledMethod which the receiver spies on"
@@ -217,9 +223,13 @@ methodSourceInterval: anInterval
 
 	methodSourceInterval := anInterval!
 
+methodSourceNode: aNode
+
+	self methodSourceInterval: (aNode start to: aNode stop)!
+
 methodSourcePosition
 
-	^self methodSourceInterval start!
+	^self methodSourceInterval ifNotNil: [ :interval | interval start]!
 
 parseTree
 
@@ -350,6 +360,18 @@ spySourceInterval: anInterval
 
 	spySourceInterval := anInterval!
 
+targetObject
+
+	"The object for which the receiver is an object-specific spy. nil for a general spy (the default)"
+
+	^targetObject!
+
+targetObject: anObject
+
+	"The object for which the receiver is an object-specific spy. nil for a general spy (the default)"
+
+	targetObject := anObject!
+
 toggleLocallyEnabled
 
 	self isLocallyEnabled: (self isLocallyEnabled not)! !
@@ -370,19 +392,21 @@ toggleLocallyEnabled
 !SSWMethodSpy categoriesFor: #description!accessing!public! !
 !SSWMethodSpy categoriesFor: #description:!accessing!public! !
 !SSWMethodSpy categoriesFor: #displayOn:!displaying!public! !
+!SSWMethodSpy categoriesFor: #fullDescription!accessing!public! !
 !SSWMethodSpy categoriesFor: #handle!debugger-step through!handling!public! !
 !SSWMethodSpy categoriesFor: #handledFor:!debugger-step over!handling!private! !
+!SSWMethodSpy categoriesFor: #hasMethodSourcePosition!public!testing! !
 !SSWMethodSpy categoriesFor: #hostFrame!accessing!private! !
 !SSWMethodSpy categoriesFor: #isBreakpoint!public!testing! !
 !SSWMethodSpy categoriesFor: #isEnabled!public!testing! !
 !SSWMethodSpy categoriesFor: #isExisting!public!testing! !
 !SSWMethodSpy categoriesFor: #isLocallyEnabled!accessing!public! !
 !SSWMethodSpy categoriesFor: #isLocallyEnabled:!accessing!public! !
-!SSWMethodSpy categoriesFor: #isVirgin!public!testing! !
 !SSWMethodSpy categoriesFor: #method!accessing!public! !
 !SSWMethodSpy categoriesFor: #method:!accessing!public! !
 !SSWMethodSpy categoriesFor: #methodSourceInterval!accessing!public! !
 !SSWMethodSpy categoriesFor: #methodSourceInterval:!accessing!public! !
+!SSWMethodSpy categoriesFor: #methodSourceNode:!accessing!public! !
 !SSWMethodSpy categoriesFor: #methodSourcePosition!accessing!public! !
 !SSWMethodSpy categoriesFor: #parseTree!accessing!public! !
 !SSWMethodSpy categoriesFor: #publishedAspects!accessing!public! !
@@ -399,6 +423,8 @@ toggleLocallyEnabled
 !SSWMethodSpy categoriesFor: #spySourceForTest!accessing!public! !
 !SSWMethodSpy categoriesFor: #spySourceInterval!accessing!public! !
 !SSWMethodSpy categoriesFor: #spySourceInterval:!accessing!public! !
+!SSWMethodSpy categoriesFor: #targetObject!accessing!public! !
+!SSWMethodSpy categoriesFor: #targetObject:!accessing!public! !
 !SSWMethodSpy categoriesFor: #toggleLocallyEnabled!actions!public! !
 
 !SSWMethodSpy class methodsFor!
@@ -443,14 +469,21 @@ newWithSource: aString description: descString
 		description: descString;
 		yourself!
 
+objectBreakpointFor: anObject
+
+	^self breakpoint
+		targetObject: anObject;
+		yourself!
+
 oneTimeBreakpoint
 
-	^self newWithSource: 'thisSpy isVirgin ifTrue: [thisSpy break].' expandMacros description: 'One-time Breakpoint'!
+	^self newWithSource: 'thisSpy breakIf: [thisSpy activationCount = 1]' description: 'One-time Breakpoint'!
 
 publishedAspectsOfInstances
 
 	^super publishedAspectsOfInstances
 		add: (Aspect string: #description);
+		add: (Aspect name: #targetObject);
 		add: (Aspect integer: #activationCount);
 		add: (Aspect boolean: #isLocallyEnabled);
 		add: (Aspect collection: #activations);
@@ -478,6 +511,7 @@ spySourceTemplate
 !SSWMethodSpy class categoriesFor: #new!instance creation!public! !
 !SSWMethodSpy class categoriesFor: #newInstanceAspect:class:!constants!development!instance creation!public! !
 !SSWMethodSpy class categoriesFor: #newWithSource:description:!instance creation!private! !
+!SSWMethodSpy class categoriesFor: #objectBreakpointFor:!instance creation!public! !
 !SSWMethodSpy class categoriesFor: #oneTimeBreakpoint!instance creation!public! !
 !SSWMethodSpy class categoriesFor: #publishedAspectsOfInstances!development!public! !
 !SSWMethodSpy class categoriesFor: #spySource!development!private! !
