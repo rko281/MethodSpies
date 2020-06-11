@@ -10,15 +10,6 @@ SSWMethodWorkspace comment: ''!
 !SSWMethodWorkspace categoriesForClass!Unclassified! !
 !SSWMethodWorkspace methodsFor!
 
-additionalAccelerators
-
-	^OrderedCollection new
-		add: #(#toggleBreakpoint 'F9');
-		add: #(#insertSpy 'Ctrl+F9');
-		add: #(#removeSpy 'Shift+F9');
-		add: #(#removeAllSpies 'Shift+Ctrl+F9');
-		yourself!
-
 autoParse
 	| method |
 
@@ -324,7 +315,6 @@ toggleSpyEnablement
 unmodifiedParseTree
 
 	^self selectedMethod parseTree! !
-!SSWMethodWorkspace categoriesFor: #additionalAccelerators!accessing!private! !
 !SSWMethodWorkspace categoriesFor: #autoParse!helpers!private! !
 !SSWMethodWorkspace categoriesFor: #createSchematicWiring!initializing!public! !
 !SSWMethodWorkspace categoriesFor: #currentSpy!helpers:spies!public! !
@@ -370,8 +360,13 @@ indicatorStyles
 				yourself]!
 
 initialize
-
-	SmalltalkSystem current methodWorkspaceClass: self!
+	SmalltalkSystem current methodWorkspaceClass: self.
+	self acceleratorKeyBindings: (Dictionary new
+				at: 'F9' put: #toggleBreakpoint;
+				at: 'Ctrl+F9' put: #insertSpy;
+				at: 'Shift+F9' put: #removeSpy;
+				at: 'Shift+Ctrl+F9' put: #removeAllSpies;
+				yourself)!
 
 spyIndicatorStyles
 
