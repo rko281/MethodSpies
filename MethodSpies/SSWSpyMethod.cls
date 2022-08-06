@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 CompiledMethod variableSubclass: #SSWSpyMethod
 	instanceVariableNames: ''
@@ -216,34 +216,36 @@ spiedMethod: anSSWSpyMethod
 	"Use embedded storage in selector - cannot add inst vars to CompiledMethod"
 
 	selector at: 3 put: anSSWSpyMethod! !
-!SSWSpyMethod categoriesFor: #asDebugMethod!development!private! !
-!SSWSpyMethod categoriesFor: #contactSpies!compiling!public! !
-!SSWSpyMethod categoriesFor: #currentMethod!accessing!public! !
-!SSWSpyMethod categoriesFor: #debugInfo!compiling!public! !
-!SSWSpyMethod categoriesFor: #getDebugInfo!development!private! !
-!SSWSpyMethod categoriesFor: #hasBreakpoint!public!testing! !
-!SSWSpyMethod categoriesFor: #hash!comparing!public! !
-!SSWSpyMethod categoriesFor: #icon!accessing!public! !
-!SSWSpyMethod categoriesFor: #infiltrateWithSpies!compiling!public! !
-!SSWSpyMethod categoriesFor: #initSelector!compiling!initializing!public! !
-!SSWSpyMethod categoriesFor: #isPrivate!private!testing! !
-!SSWSpyMethod categoriesFor: #isPrivate:!accessing!private! !
-!SSWSpyMethod categoriesFor: #isSpy!public!testing! !
-!SSWSpyMethod categoriesFor: #isUnbound!public!testing! !
-!SSWSpyMethod categoriesFor: #methodSpies!accessing!public! !
-!SSWSpyMethod categoriesFor: #methodSpies:!accessing!public! !
-!SSWSpyMethod categoriesFor: #parseTree!accessing!public! !
-!SSWSpyMethod categoriesFor: #recompile!compiling!public! !
-!SSWSpyMethod categoriesFor: #recompileWithSpy:!compiling!public! !
-!SSWSpyMethod categoriesFor: #removeAllSpies!compiling!public! !
-!SSWSpyMethod categoriesFor: #removeSpies:!compiling!public! !
-!SSWSpyMethod categoriesFor: #removeSpy:!compiling!public! !
-!SSWSpyMethod categoriesFor: #selector!accessing!public! !
-!SSWSpyMethod categoriesFor: #selector:!accessing!public! !
-!SSWSpyMethod categoriesFor: #sourceDescriptor!accessing!public! !
-!SSWSpyMethod categoriesFor: #sourceWithSpies!accessing!public! !
-!SSWSpyMethod categoriesFor: #spiedMethod!accessing!public! !
-!SSWSpyMethod categoriesFor: #spiedMethod:!accessing!public! !
+!SSWSpyMethod categoriesForMethods!
+asDebugMethod!development!private! !
+contactSpies!compiling!public! !
+currentMethod!accessing!public! !
+debugInfo!compiling!public! !
+getDebugInfo!development!private! !
+hasBreakpoint!public!testing! !
+hash!comparing!public! !
+icon!accessing!public! !
+infiltrateWithSpies!compiling!public! !
+initSelector!compiling!initializing!public! !
+isPrivate!private!testing! !
+isPrivate:!accessing!private! !
+isSpy!public!testing! !
+isUnbound!public!testing! !
+methodSpies!accessing!public! !
+methodSpies:!accessing!public! !
+parseTree!accessing!public! !
+recompile!compiling!public! !
+recompileWithSpy:!compiling!public! !
+removeAllSpies!compiling!public! !
+removeSpies:!compiling!public! !
+removeSpy:!compiling!public! !
+selector!accessing!public! !
+selector:!accessing!public! !
+sourceDescriptor!accessing!public! !
+sourceWithSpies!accessing!public! !
+spiedMethod!accessing!public! !
+spiedMethod:!accessing!public! !
+!
 
 !SSWSpyMethod class methodsFor!
 
@@ -266,8 +268,10 @@ privateIcon
 publicIcon
 
 	^##((TextTileIcon text: $\x1F576 fontName: 'Segoe UI Symbol' color: (ARGB named: #limeGreen)) textcolor: Color white; yourself)! !
-!SSWSpyMethod class categoriesFor: #icon!accessing!public! !
-!SSWSpyMethod class categoriesFor: #new:!instance creation!public! !
-!SSWSpyMethod class categoriesFor: #privateIcon!constants!public! !
-!SSWSpyMethod class categoriesFor: #publicIcon!constants!public! !
+!SSWSpyMethod class categoriesForMethods!
+icon!accessing!public! !
+new:!instance creation!public! !
+privateIcon!constants!public! !
+publicIcon!constants!public! !
+!
 

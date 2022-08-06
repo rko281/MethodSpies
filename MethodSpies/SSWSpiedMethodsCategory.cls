@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 VirtualMethodCategory subclass: #SSWSpiedMethodsCategory
 	instanceVariableNames: ''
@@ -13,7 +13,9 @@ SSWSpiedMethodsCategory comment: ''!
 includesMethod: aMethod
 
 	^aMethod isSpy! !
-!SSWSpiedMethodsCategory categoriesFor: #includesMethod:!public!testing! !
+!SSWSpiedMethodsCategory categoriesForMethods!
+includesMethod:!public!testing! !
+!
 
 !SSWSpiedMethodsCategory class methodsFor!
 
@@ -28,6 +30,8 @@ uninitialize
 	"Private - Uninitialize the receiver as it is about to be removed from the system."
 
 	self removePseud: self pseudPrefix, 'method spies'! !
-!SSWSpiedMethodsCategory class categoriesFor: #initialize!initializing!private! !
-!SSWSpiedMethodsCategory class categoriesFor: #uninitialize!class hierarchy-removing!private! !
+!SSWSpiedMethodsCategory class categoriesForMethods!
+initialize!initializing!private! !
+uninitialize!class hierarchy-removing!private! !
+!
 

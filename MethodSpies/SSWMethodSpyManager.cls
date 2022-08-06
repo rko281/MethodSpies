@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 Model subclass: #SSWMethodSpyManager
 	instanceVariableNames: 'areSpiesEnabled'
@@ -9,6 +9,10 @@ SSWMethodSpyManager guid: (GUID fromString: '{72e11082-3f59-11d6-87e5-0010a70883
 SSWMethodSpyManager comment: ''!
 !SSWMethodSpyManager categoriesForClass!Unclassified! !
 !SSWMethodSpyManager methodsFor!
+
+_compileSpy: anSSWMethodSpy
+
+	anSSWMethodSpy method recompileWithSpy: anSSWMethodSpy!
 
 areSpiesEnabled
 
@@ -30,7 +34,7 @@ compileSpy: anSSWMethodSpy
 
 	"return success"
 
-	^[anSSWMethodSpy method recompileWithSpy: anSSWMethodSpy.
+	^[self _compileSpy: anSSWMethodSpy.
 	true] 
 		on: CompilerErrorNotification do:
 			[ :exc | 
@@ -128,25 +132,28 @@ uninitialize
 
 	Debugger removeEventsTriggeredFor: self.
 	FlipperInspector removeEventsTriggeredFor: self! !
-!SSWMethodSpyManager categoriesFor: #areSpiesEnabled!accessing!public! !
-!SSWMethodSpyManager categoriesFor: #areSpiesEnabled:!accessing!public! !
-!SSWMethodSpyManager categoriesFor: #compileSpy:!actions!public! !
-!SSWMethodSpyManager categoriesFor: #displayOn:!displaying!public! !
-!SSWMethodSpyManager categoriesFor: #hookInspector:!operations!private! !
-!SSWMethodSpyManager categoriesFor: #icon!accessing!public! !
-!SSWMethodSpyManager categoriesFor: #initialize!initializing!public! !
-!SSWMethodSpyManager categoriesFor: #insertObjectBreakpointFor:!operations!private! !
-!SSWMethodSpyManager categoriesFor: #insertObjectBreakpointForInspecteeOf:!operations!private! !
-!SSWMethodSpyManager categoriesFor: #onDebuggerClosed:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onDebuggerOpened:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onInspectorClosed:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onInspectorOpened:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onSpiesCompiledIn:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onSpyChanged!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #onSpyChangedIn:!event handling!public! !
-!SSWMethodSpyManager categoriesFor: #spiesCompiledIn:!operations!public! !
-!SSWMethodSpyManager categoriesFor: #spyChangedIn:!operations!public! !
-!SSWMethodSpyManager categoriesFor: #uninitialize!initializing!public! !
+!SSWMethodSpyManager categoriesForMethods!
+_compileSpy:!actions!private! !
+areSpiesEnabled!accessing!public! !
+areSpiesEnabled:!accessing!public! !
+compileSpy:!actions!public! !
+displayOn:!displaying!public! !
+hookInspector:!operations!private! !
+icon!accessing!public! !
+initialize!initializing!public! !
+insertObjectBreakpointFor:!operations!private! !
+insertObjectBreakpointForInspecteeOf:!operations!private! !
+onDebuggerClosed:!event handling!public! !
+onDebuggerOpened:!event handling!public! !
+onInspectorClosed:!event handling!public! !
+onInspectorOpened:!event handling!public! !
+onSpiesCompiledIn:!event handling!public! !
+onSpyChanged!event handling!public! !
+onSpyChangedIn:!event handling!public! !
+spiesCompiledIn:!operations!public! !
+spyChangedIn:!operations!public! !
+uninitialize!initializing!public! !
+!
 
 !SSWMethodSpyManager class methodsFor!
 
@@ -188,10 +195,12 @@ reset
 uninitialize
 
 	self reset! !
-!SSWMethodSpyManager class categoriesFor: #current!accessing!public! !
-!SSWMethodSpyManager class categoriesFor: #initialize!class initialization!public! !
-!SSWMethodSpyManager class categoriesFor: #publishedAspectsOfInstances!constants!public! !
-!SSWMethodSpyManager class categoriesFor: #publishedEventsOfInstances!constants!public! !
-!SSWMethodSpyManager class categoriesFor: #reset!accessing!public! !
-!SSWMethodSpyManager class categoriesFor: #uninitialize!class initialization!public! !
+!SSWMethodSpyManager class categoriesForMethods!
+current!accessing!public! !
+initialize!class initialization!public! !
+publishedAspectsOfInstances!constants!public! !
+publishedEventsOfInstances!constants!public! !
+reset!accessing!public! !
+uninitialize!class initialization!public! !
+!
 

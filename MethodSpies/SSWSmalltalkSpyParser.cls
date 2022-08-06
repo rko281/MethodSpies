@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 SmalltalkParser subclass: #SSWSmalltalkSpyParser
 	instanceVariableNames: ''
@@ -15,5 +15,7 @@ methodNodeClass
 	"The receiver class exists only to allow Spied Methods to specify their own method node class"
 
 	^SSWSpyMethodNode! !
-!SSWSmalltalkSpyParser categoriesFor: #methodNodeClass!constants!public! !
+!SSWSmalltalkSpyParser categoriesForMethods!
+methodNodeClass!constants!public! !
+!
 

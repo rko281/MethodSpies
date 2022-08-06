@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 Object subclass: #SSWMethodSpy
 	instanceVariableNames: 'spySource methodSourceInterval spySourceInterval activations isLocallyEnabled method context description targetObject'
@@ -375,57 +375,59 @@ targetObject: anObject
 toggleLocallyEnabled
 
 	self isLocallyEnabled: (self isLocallyEnabled not)! !
-!SSWMethodSpy categoriesFor: #<=!comparing!public! !
-!SSWMethodSpy categoriesFor: #activated!debugger-step over!private! !
-!SSWMethodSpy categoriesFor: #activationContext!accessing!public! !
-!SSWMethodSpy categoriesFor: #activationCount!accessing!public! !
-!SSWMethodSpy categoriesFor: #activations!accessing!public! !
-!SSWMethodSpy categoriesFor: #activations:!accessing!public! !
-!SSWMethodSpy categoriesFor: #at:!accessing!public! !
-!SSWMethodSpy categoriesFor: #at:put:!accessing!public! !
-!SSWMethodSpy categoriesFor: #break!public!spy actions! !
-!SSWMethodSpy categoriesFor: #breakIf:!public!spy actions! !
-!SSWMethodSpy categoriesFor: #captureArguments!public!spy actions! !
-!SSWMethodSpy categoriesFor: #commentedSpySource!accessing!public! !
-!SSWMethodSpy categoriesFor: #context!accessing!public! !
-!SSWMethodSpy categoriesFor: #context:!accessing!public! !
-!SSWMethodSpy categoriesFor: #description!accessing!public! !
-!SSWMethodSpy categoriesFor: #description:!accessing!public! !
-!SSWMethodSpy categoriesFor: #displayOn:!displaying!public! !
-!SSWMethodSpy categoriesFor: #fullDescription!accessing!public! !
-!SSWMethodSpy categoriesFor: #handle!debugger-step through!handling!public! !
-!SSWMethodSpy categoriesFor: #handledFor:!debugger-step over!handling!private! !
-!SSWMethodSpy categoriesFor: #hasMethodSourcePosition!public!testing! !
-!SSWMethodSpy categoriesFor: #hostFrame!accessing!private! !
-!SSWMethodSpy categoriesFor: #isBreakpoint!public!testing! !
-!SSWMethodSpy categoriesFor: #isEnabled!public!testing! !
-!SSWMethodSpy categoriesFor: #isExisting!public!testing! !
-!SSWMethodSpy categoriesFor: #isLocallyEnabled!accessing!public! !
-!SSWMethodSpy categoriesFor: #isLocallyEnabled:!accessing!public! !
-!SSWMethodSpy categoriesFor: #method!accessing!public! !
-!SSWMethodSpy categoriesFor: #method:!accessing!public! !
-!SSWMethodSpy categoriesFor: #methodSourceInterval!accessing!public! !
-!SSWMethodSpy categoriesFor: #methodSourceInterval:!accessing!public! !
-!SSWMethodSpy categoriesFor: #methodSourceNode:!accessing!public! !
-!SSWMethodSpy categoriesFor: #methodSourcePosition!accessing!public! !
-!SSWMethodSpy categoriesFor: #parseTree!accessing!public! !
-!SSWMethodSpy categoriesFor: #publishedAspects!accessing!public! !
-!SSWMethodSpy categoriesFor: #removeFromMethod!actions!public! !
-!SSWMethodSpy categoriesFor: #reset!actions!public! !
-!SSWMethodSpy categoriesFor: #scintillaIndicator:!accessing!public! !
-!SSWMethodSpy categoriesFor: #spiedFrame!debugger-step over!handling!private! !
-!SSWMethodSpy categoriesFor: #spyExpressionFor:!debugger-step over!handling!private! !
-!SSWMethodSpy categoriesFor: #spyManager!accessing!public! !
-!SSWMethodSpy categoriesFor: #spyReceiverFor:!debugger-step over!handling!private! !
-!SSWMethodSpy categoriesFor: #spySource!accessing!public! !
-!SSWMethodSpy categoriesFor: #spySource:!accessing!public! !
-!SSWMethodSpy categoriesFor: #spySourceAt:spyCount:!accessing!public! !
-!SSWMethodSpy categoriesFor: #spySourceForTest!accessing!public! !
-!SSWMethodSpy categoriesFor: #spySourceInterval!accessing!public! !
-!SSWMethodSpy categoriesFor: #spySourceInterval:!accessing!public! !
-!SSWMethodSpy categoriesFor: #targetObject!accessing!public! !
-!SSWMethodSpy categoriesFor: #targetObject:!accessing!public! !
-!SSWMethodSpy categoriesFor: #toggleLocallyEnabled!actions!public! !
+!SSWMethodSpy categoriesForMethods!
+<=!comparing!public! !
+activated!debugger-step over!private! !
+activationContext!accessing!public! !
+activationCount!accessing!public! !
+activations!accessing!public! !
+activations:!accessing!public! !
+at:!accessing!public! !
+at:put:!accessing!public! !
+break!public!spy actions! !
+breakIf:!public!spy actions! !
+captureArguments!public!spy actions! !
+commentedSpySource!accessing!public! !
+context!accessing!public! !
+context:!accessing!public! !
+description!accessing!public! !
+description:!accessing!public! !
+displayOn:!displaying!public! !
+fullDescription!accessing!public! !
+handle!debugger-step through!handling!public! !
+handledFor:!debugger-step over!handling!private! !
+hasMethodSourcePosition!public!testing! !
+hostFrame!accessing!private! !
+isBreakpoint!public!testing! !
+isEnabled!public!testing! !
+isExisting!public!testing! !
+isLocallyEnabled!accessing!public! !
+isLocallyEnabled:!accessing!public! !
+method!accessing!public! !
+method:!accessing!public! !
+methodSourceInterval!accessing!public! !
+methodSourceInterval:!accessing!public! !
+methodSourceNode:!accessing!public! !
+methodSourcePosition!accessing!public! !
+parseTree!accessing!public! !
+publishedAspects!accessing!public! !
+removeFromMethod!actions!public! !
+reset!actions!public! !
+scintillaIndicator:!accessing!public! !
+spiedFrame!debugger-step over!handling!private! !
+spyExpressionFor:!debugger-step over!handling!private! !
+spyManager!accessing!public! !
+spyReceiverFor:!debugger-step over!handling!private! !
+spySource!accessing!public! !
+spySource:!accessing!public! !
+spySourceAt:spyCount:!accessing!public! !
+spySourceForTest!accessing!public! !
+spySourceInterval!accessing!public! !
+spySourceInterval:!accessing!public! !
+targetObject!accessing!public! !
+targetObject:!accessing!public! !
+toggleLocallyEnabled!actions!public! !
+!
 
 !SSWMethodSpy class methodsFor!
 
@@ -440,6 +442,10 @@ breakpoint
 captureArguments
 
 	^self newWithSource: 'thisSpy captureArguments' description: 'Capture Arguments'!
+
+conditionalBreakpoint
+
+	^self newWithSource: 'thisSpy breakIf: [true]' description: 'Conditional Breakpoint'!
 
 convenienceSpyNames
 
@@ -477,7 +483,7 @@ objectBreakpointFor: anObject
 
 oneTimeBreakpoint
 
-	^self newWithSource: 'thisSpy breakIf: [thisSpy activationCount = 1]' description: 'One-time Breakpoint'!
+	^self newWithSource: 'thisSpy isLocallyEnabled: false; break' description: 'One-time Breakpoint'!
 
 publishedAspectsOfInstances
 
@@ -503,18 +509,21 @@ spySourceCount: anInteger
 spySourceTemplate
 
 	^'#thisSpy<1d> handle. '! !
-!SSWMethodSpy class categoriesFor: #activationCounter!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #breakpoint!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #captureArguments!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #convenienceSpyNames!constants!public! !
-!SSWMethodSpy class categoriesFor: #icon!constants!public! !
-!SSWMethodSpy class categoriesFor: #new!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #newInstanceAspect:class:!constants!development!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #newWithSource:description:!instance creation!private! !
-!SSWMethodSpy class categoriesFor: #objectBreakpointFor:!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #oneTimeBreakpoint!instance creation!public! !
-!SSWMethodSpy class categoriesFor: #publishedAspectsOfInstances!development!public! !
-!SSWMethodSpy class categoriesFor: #spySource!development!private! !
-!SSWMethodSpy class categoriesFor: #spySourceCount:!development!private! !
-!SSWMethodSpy class categoriesFor: #spySourceTemplate!constants!development!private! !
+!SSWMethodSpy class categoriesForMethods!
+activationCounter!instance creation!public! !
+breakpoint!instance creation!public! !
+captureArguments!instance creation!public! !
+conditionalBreakpoint!instance creation!public! !
+convenienceSpyNames!constants!public! !
+icon!constants!public! !
+new!instance creation!public! !
+newInstanceAspect:class:!constants!development!instance creation!public! !
+newWithSource:description:!instance creation!private! !
+objectBreakpointFor:!instance creation!public! !
+oneTimeBreakpoint!instance creation!public! !
+publishedAspectsOfInstances!development!public! !
+spySource!development!private! !
+spySourceCount:!development!private! !
+spySourceTemplate!constants!development!private! !
+!
 

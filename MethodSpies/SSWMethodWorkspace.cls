@@ -1,7 +1,7 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 MethodWorkspace subclass: #SSWMethodWorkspace
-	instanceVariableNames: 'lastPlainText unmodifiedParseTree'
+	instanceVariableNames: ''
 	classVariableNames: 'IndicatorStylesWithSpies'
 	poolDictionaries: 'SmalltalkParseErrorCodes'
 	classInstanceVariableNames: ''!
@@ -11,13 +11,16 @@ SSWMethodWorkspace comment: ''!
 !SSWMethodWorkspace methodsFor!
 
 autoParse
-	| method |
 
 	super autoParse.
 
-	method := self selectedMethod.
+	self selectedMethod ifNotNil: 
+		[ :method |
+		(self isModified not and: [method isSpy]) ifTrue: [self highlightMethodSpies: 0 in: method]]!
 
-	(method notNil and: [self isModified not and: [method isSpy]]) ifTrue: [self highlightMethodSpies: 0 in: method]!
+canEditSpies
+
+	^self isModified not and: [self isReadOnly not and: [self selectedMethod ifNil: [false] ifNotNil: [ :method | method isUnbound not]]]!
 
 createSchematicWiring
 
@@ -38,17 +41,42 @@ currentSpy
 		[self selectedMethod methodSpies detect: 
 			[ :each | each methodSourceInterval includes: currentSpyNode start] ifNone: [nil]]!
 
+editSpy
+
+	self editSpy: self highlightCurrentSpy!
+
+editSpy: aMethodSpy
+
+	| editor range rectangle style font|
+
+	editor := InplaceTextEditor createOn: aMethodSpy spySource.
+	editor validationBlock: 
+		[ :spySource || oldSource |
+		spySource trimBlanks isEmpty ifTrue: [^self removeSpy].
+		oldSource := aMethodSpy spySource.
+		aMethodSpy spySource: spySource.
+		[self preserveSelectionDuring: [self methodSpyManager _compileSpy: aMethodSpy]. true] on: CompilerErrorNotification do: 
+			[ :exc |
+			aMethodSpy spySource: oldSource.
+			exc return: false]].
+
+	range := aMethodSpy methodSourceInterval.
+	rectangle := self view boundingRectangleOfTextRange: range.
+	editor textRectangle: rectangle.
+	"Set the same font as the existing text so there is no visible 'jump'"
+	style := self view styleAt: range start.
+	font := self fontOfStyle: style.
+	editor font: font.
+	editor showModalWithoutAdjustment!
+
 highlightCurrentSpy
 
 	"Highlight the range of the current spy. Return the spy"
 
-	| spy |
-
-	spy := self currentSpy.
-
-	self view selectionRange: spy methodSourceInterval.
-
-	^spy!
+	^self currentSpy ifNotNil: 
+		[ :spy | 
+		self view selectionRange: spy methodSourceInterval.
+		spy]!
 
 highlightMethodSpies: anInteger in: method
 
@@ -96,60 +124,49 @@ insertBreakpoint
 
 insertConditionalBreakpoint
 
-	"Create and insert a conditional breakpoint, obtaining the code from a dialog"
+	self editSpy: 
+		(SSWMethodSpy conditionalBreakpoint
+			method: self selectedMethod;
+			methodSourceInterval: self highlightSpyInsertPositionRange;
+			yourself)!
 
-	| positionRange condition |
+insertOrEditSpy
 
-	positionRange := self highlightSpyInsertPositionRange.
-
-	condition := Prompter on: '' asValue prompt: 'Enter Condition' caption: 'Insert Conditional Breakpoint'.
-	(condition isNil or: [condition isEmpty]) ifFalse:
-		[self methodSpyManager compileSpy:
-			(SSWMethodSpy new 
-				method: self selectedMethod;
-				description: ('Conditional Breakpoint: <1s>' expandMacrosWith: condition);
-				spySource: ('thisSpy breakIf: [<1s>]' expandMacrosWith: condition);
-				methodSourceInterval: positionRange;
-				yourself)]!
+	self highlightCurrentSpy
+		ifNil: [self insertSpy]
+		ifNotNil: [ :spy | self editSpy: spy]!
 
 insertSpy
 
-	"Create and insert a Method Spy, obtaining the code from a dialog"
+	"Create and insert a Method Spy, obtaining the code from an in-place editor"
 
-	| positionRange spySource |
-
-	positionRange := self highlightSpyInsertPositionRange.
-
-	spySource := Prompter on: 'self halt.' asValue prompt: 'Enter Spy code' caption: 'Insert Spy'.
-	(spySource isNil or: [spySource isEmpty]) ifFalse:
-		[self methodSpyManager compileSpy:
-			(SSWMethodSpy new 
-				method: self selectedMethod;
-				spySource: spySource; 
-				methodSourceInterval: positionRange;
-				yourself)]!
+	self editSpy:
+		(SSWMethodSpy breakpoint
+			method: self selectedMethod;
+			methodSourceInterval: self highlightSpyInsertPositionRange;
+			yourself)!
 
 insertSpy: aMethodSpy
 
-	| oldRange positionRange |
-
 	(self querySpyCommandSymbol: #insertSpy) ifFalse: [Sound beep. ^self].
 
-	oldRange  := self selectionRange. 
-	positionRange := self highlightSpyInsertPositionRange.
-
-	self safeRecompile:
-		[self selectedMethod beSpiedOnBy: 
-			(aMethodSpy
-				method: self selectedMethod;
-				methodSourceInterval: positionRange;
-				yourself)].
-
-	self selectionRange: oldRange !
+	self preserveSelectionDuring: 
+		[self safeRecompile:
+			[self selectedMethod beSpiedOnBy: 
+				(aMethodSpy
+					method: self selectedMethod;
+					methodSourceInterval: self highlightSpyInsertPositionRange;
+					yourself)]]!
 
 insertSpyNamed: aSymbol
 
 	self insertSpy: (SSWMethodSpy perform: aSymbol)!
+
+inspectIt
+
+	self highlightCurrentSpy
+		ifNil: [super inspectIt]
+		ifNotNil: [ :spy | spy inspect]!
 
 inspectSpy
 
@@ -161,7 +178,7 @@ isCurrentlyAtSpy
 
 isSpyCommand: aSymbol
 
-	^#(#toggleBreakpoint #insertSpySubmenu insertSpy #insertSpyNamed: #inspectSpy #toggleSpyEnablement #resetSpy #removeSpy #removeAllSpies) includes: aSymbol!
+	^#(#toggleBreakpoint #insertSpySubmenu #insertSpy #insertOrEditSpy #insertSpyNamed: #inspectSpy #toggleSpyEnablement #resetSpy #removeSpy #removeAllSpies) includes: aSymbol!
 
 isSpyEnabled
 
@@ -170,6 +187,12 @@ isSpyEnabled
 methodSpyManager
 
 	^SSWMethodSpyManager current!
+
+onLeftButtonDoubleClicked: aMouseEvent
+
+	^(self spyIndicatorIn: (self view indicatorsUnder: aMouseEvent position))
+		ifNil: [super onLeftButtonDoubleClicked: aMouseEvent]
+		ifNotNil: [ :spyIndicator | self editSpy: spyIndicator tag]!
 
 onMethodSpyChanged
 
@@ -192,7 +215,15 @@ preserveSelectionDuring: aBlock
 	| oldRange |
 
 	oldRange  := self selectionRange. 
-	aBlock ensure: [self selectionRange: oldRange]!
+	view noRedrawDo: [aBlock ensure: [self selectionRange: oldRange]]!
+
+processAcceleratorKey: aString
+
+	| keyCode |
+
+	keyCode := AcceleratorTable keyCodeFromString: aString.
+
+	(ScintillaView.DefaultKeyBindings detect: [ :each | each  acceleratorKey = keyCode] ifNone: [nil]) ifNotNil: [ :action | view perform: action commandSymbol]!
 
 queryCommand: aCommandQuery
 
@@ -201,7 +232,7 @@ queryCommand: aCommandQuery
 	symbol := aCommandQuery commandSymbol.
 
 	symbol == #methodSpies ifTrue:
-		[aCommandQuery isEnabled: (self view isModified not and: [self view isReadOnly not]).
+		[aCommandQuery isEnabled: self canEditSpies.
 		^true].
 
 	(self isSpyCommand: symbol) ifTrue:
@@ -217,8 +248,9 @@ querySpyCommandSymbol: aSymbol
 
 	| isInsert |
 
-	(self isModified or: [self selectedMethod isNil or: [self selectedMethod isUnbound]]) ifTrue: [^false].
+	self canEditSpies ifFalse: [^false].
 
+	aSymbol = #insertOrEditSpy ifTrue: [^true].
 	aSymbol = #toggleBreakpoint ifTrue: [^self currentSpy ifNil: [true] ifNotNil: [ :spy | spy isBreakpoint]].
 	aSymbol = #removeAllSpies ifTrue: [^self selectedMethod isSpy].
 
@@ -229,18 +261,34 @@ querySpyCommandSymbol: aSymbol
 		[isInsert not]
 	ifFalse:
 		[isInsert
-			ifTrue: [self selectedMethod notNil and: [self spyInsertNode notNil]]
+			ifTrue: [self spyInsertNode notNil]
 			ifFalse: [false]]!
 
 removeAllSpies
 
-	self selectedMethod removeAllSpies!
+	self preserveSelectionDuring: [self selectedMethod removeAllSpies]!
+
+removeAllSpiesShiftCtrlDelete
+
+	(self canEditSpies and: [self selectedMethod isSpy])
+		ifTrue: [self removeAllSpies]
+		ifFalse: [self processAcceleratorKey: 'SHIFT+CTRL+DELETE']!
 
 removeSpy
 
-	self preserveSelectionDuring: 
-		[self highlightCurrentSpy.
-		self currentSpy removeFromMethod]!
+	self removeSpyIfNone: []!
+
+removeSpyCtrlDelete
+
+	self canEditSpies ifFalse: [^self processAcceleratorKey: 'CTRL+DELETE'].
+
+	self removeSpyIfNone: [self processAcceleratorKey: 'CTRL+DELETE']!
+
+removeSpyIfNone: aBlock
+
+	self highlightCurrentSpy 
+		ifNil: [aBlock value]
+		ifNotNil: [ :spy | self preserveSelectionDuring: [spy removeFromMethod]]!
 
 resetSpy
 
@@ -254,6 +302,22 @@ safeRecompile: aBlock
 		[ :exc |
 		MessageBox warning: ('Failed to compile: ', exc description).
 		exc return]!
+
+selectedMethod
+
+	"Occasional temporary process at: BoundsError when quickly toggling breakpoint in Debugger - retry once"
+
+	^parentPresenter ifNotNil: 
+		[:p | 
+		[p selectedMethod] on: BoundsError do: 
+			[ :exc | 
+			"This seems to resolve things:"
+			SessionManager inputState pumpMessages; processDeferredActions. 
+			exc return: p selectedMethod]]!
+
+spyIndicatorIn: aCollection
+
+	^aCollection detect: [ :indicator |  ##(self) spyIndicatorStyles anySatisfy: [ :style | indicator styleName = style name]] ifNone: [nil]!
 
 spyInsertNode
 
@@ -287,6 +351,7 @@ spySubmenu
 		addItem: ((CommandMenuItem command: #toggleBreakpoint description: 'Toggle Breakpoint') acceleratorKeyString: 'F9'; yourself);
 		addItem: insertSubmenu;
 		addCommand: #toggleSpyEnablement description: 'Enabled';
+		addCommand: #editSpy description: 'Edit Spy';
 		addCommand: #inspectSpy description: 'Inspect Spy';
 		addCommand: #resetSpy description: 'Reset Spy';
 		addItem: ((CommandMenuItem command: #removeSpy description: 'Remove Spy') acceleratorKeyString: 'Shift+F9'; yourself);
@@ -303,53 +368,96 @@ text: aString
 
 toggleBreakpoint
 
+	self canEditSpies ifFalse: [^self].
+
 	self isCurrentlyAtSpy
 		ifTrue: [self removeSpy]
 		ifFalse: [self insertBreakpoint]!
+
+toggleOneTimeBreakpoint
+
+	self canEditSpies ifFalse: [^self].
+
+	self isCurrentlyAtSpy
+		ifTrue: [self removeSpy]
+		ifFalse: [self insertSpy: SSWMethodSpy oneTimeBreakpoint]!
 
 toggleSpyEnablement
 
 	self currentSpy toggleLocallyEnabled.
 	self methodSpyManager spyChangedIn: self selectedMethod!
 
+toggleSpyEnablementCtrlUp
+
+	^(self canEditSpies and: [self isCurrentlyAtSpy])
+		ifTrue: [self toggleSpyEnablement]
+		ifFalse: [self processAcceleratorKey: 'CTRL+UP']!
+
 unmodifiedParseTree
 
 	^self selectedMethod parseTree! !
-!SSWMethodWorkspace categoriesFor: #autoParse!helpers!private! !
-!SSWMethodWorkspace categoriesFor: #createSchematicWiring!initializing!public! !
-!SSWMethodWorkspace categoriesFor: #currentSpy!helpers:spies!public! !
-!SSWMethodWorkspace categoriesFor: #highlightCurrentSpy!helpers:spies!public! !
-!SSWMethodWorkspace categoriesFor: #highlightMethodSpies:in:!helpers!private! !
-!SSWMethodWorkspace categoriesFor: #highlightSpyInsertPositionRange!helpers:spies!public! !
-!SSWMethodWorkspace categoriesFor: #insertBreakpoint!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #insertConditionalBreakpoint!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #insertSpy!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #insertSpy:!commands:spies!private! !
-!SSWMethodWorkspace categoriesFor: #insertSpyNamed:!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #inspectSpy!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #isCurrentlyAtSpy!private!testing! !
-!SSWMethodWorkspace categoriesFor: #isSpyCommand:!commands:spies!private! !
-!SSWMethodWorkspace categoriesFor: #isSpyEnabled!private!testing! !
-!SSWMethodWorkspace categoriesFor: #methodSpyManager!accessing!private! !
-!SSWMethodWorkspace categoriesFor: #onMethodSpyChanged!event handling!private! !
-!SSWMethodWorkspace categoriesFor: #onMethodSpyChangedIn:!event handling!public! !
-!SSWMethodWorkspace categoriesFor: #onViewOpened!event handling!public! !
-!SSWMethodWorkspace categoriesFor: #preserveSelectionDuring:!helpers!private! !
-!SSWMethodWorkspace categoriesFor: #queryCommand:!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #querySpyCommandSymbol:!commands:spies!private! !
-!SSWMethodWorkspace categoriesFor: #removeAllSpies!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #removeSpy!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #resetSpy!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #safeRecompile:!helpers!private! !
-!SSWMethodWorkspace categoriesFor: #spyInsertNode!helpers:spies!private! !
-!SSWMethodWorkspace categoriesFor: #spyInsertNodeIn:!helpers:spies!private! !
-!SSWMethodWorkspace categoriesFor: #spySubmenu!accessing!public! !
-!SSWMethodWorkspace categoriesFor: #text:!accessing!public! !
-!SSWMethodWorkspace categoriesFor: #toggleBreakpoint!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #toggleSpyEnablement!commands:spies!public! !
-!SSWMethodWorkspace categoriesFor: #unmodifiedParseTree!accessing!private! !
+!SSWMethodWorkspace categoriesForMethods!
+autoParse!helpers!private! !
+canEditSpies!public!testing! !
+createSchematicWiring!initializing!public! !
+currentSpy!helpers:spies!public! !
+editSpy!commands:spies!public! !
+editSpy:!helpers!private! !
+highlightCurrentSpy!helpers:spies!public! !
+highlightMethodSpies:in:!helpers!private! !
+highlightSpyInsertPositionRange!helpers:spies!public! !
+insertBreakpoint!commands:spies!public! !
+insertConditionalBreakpoint!commands:spies!public! !
+insertOrEditSpy!commands:spies!public! !
+insertSpy!commands:spies!public! !
+insertSpy:!helpers!private! !
+insertSpyNamed:!commands:spies!public! !
+inspectIt!commands:spies!public! !
+inspectSpy!commands:spies!public! !
+isCurrentlyAtSpy!private!testing! !
+isSpyCommand:!private!testing! !
+isSpyEnabled!private!testing! !
+methodSpyManager!accessing!private! !
+onLeftButtonDoubleClicked:!event handling!public! !
+onMethodSpyChanged!event handling!private! !
+onMethodSpyChangedIn:!event handling!public! !
+onViewOpened!event handling!public! !
+preserveSelectionDuring:!helpers!private! !
+processAcceleratorKey:!helpers!private! !
+queryCommand:!commands:spies!public! !
+querySpyCommandSymbol:!commands:spies!private! !
+removeAllSpies!commands:spies!public! !
+removeAllSpiesShiftCtrlDelete!commands:spies!public! !
+removeSpy!commands:spies!public! !
+removeSpyCtrlDelete!commands:spies!public! !
+removeSpyIfNone:!helpers!private! !
+resetSpy!commands:spies!public! !
+safeRecompile:!helpers!private! !
+selectedMethod!accessing!public! !
+spyIndicatorIn:!helpers:spies!private! !
+spyInsertNode!helpers:spies!private! !
+spyInsertNodeIn:!helpers:spies!private! !
+spySubmenu!accessing!public! !
+text:!accessing!public! !
+toggleBreakpoint!commands:spies!public! !
+toggleOneTimeBreakpoint!commands:spies!public! !
+toggleSpyEnablement!commands:spies!public! !
+toggleSpyEnablementCtrlUp!commands:spies!public! !
+unmodifiedParseTree!accessing!private! !
+!
 
 !SSWMethodWorkspace class methodsFor!
+
+defaultKeyBindings
+
+	^Dictionary new
+		at: 'F9' put: #toggleBreakpoint;
+		at: 'Ctrl+F9' put: #toggleOneTimeBreakpoint;
+		at: 'Ctrl+Enter' put: #insertOrEditSpy;
+		at: 'Ctrl+Up' put: #toggleSpyEnablementCtrlUp;
+		at: 'Ctrl+Delete' put: #removeSpyCtrlDelete;
+		at: 'Shift+Ctrl+Delete' put: #removeAllSpiesShiftCtrlDelete;
+		yourself!
 
 indicatorStyles
 
@@ -360,26 +468,48 @@ indicatorStyles
 				yourself]!
 
 initialize
+
 	SmalltalkSystem current methodWorkspaceClass: self.
-	self acceleratorKeyBindings: (Dictionary new
-				at: 'F9' put: #toggleBreakpoint;
-				at: 'Ctrl+F9' put: #insertSpy;
-				at: 'Shift+F9' put: #removeSpy;
-				at: 'Shift+Ctrl+F9' put: #removeAllSpies;
-				yourself)!
+
+	self useDefaultKeyBindings!
+
+legacyKeyBindings
+
+	^Dictionary new
+		at: 'F9' put: #toggleBreakpoint;
+		at: 'Ctrl+F9' put: #insertSpy;
+		at: 'Shift+F9' put: #removeSpy;
+		at: 'Shift+Ctrl+F9' put: #removeAllSpies;
+		yourself!
 
 spyIndicatorStyles
 
-	^OrderedCollection new
-		add: (ScintillaIndicatorStyle new name: #SpyEnabled; style: #roundBox; forecolor: Color red; hoverStyle: #straightBox; hoverForecolor: Color red; yourself);
-		add: (ScintillaIndicatorStyle new name: #SpyDisabled; style: #roundBox; forecolor: Color darkGray; hoverStyle: #straightBox; hoverForecolor: Color darkGray; yourself);
-		yourself!
+	"IndicatorStylesWithSpies := nil"
+
+	^{ 
+		(ScintillaIndicatorStyle new name: #SpyEnabled; style: #roundBox; forecolor: Color red; hoverStyle: #straightBox; hoverForecolor: Color red; yourself).
+		(ScintillaIndicatorStyle new name: #SpyDisabled; style: #roundBox; forecolor: Color blue ; hoverStyle: #straightBox; hoverForecolor: Color blue; yourself)
+	}!
 
 uninitialize
 
-	SmalltalkSystem current methodWorkspaceClass: MethodWorkspace! !
-!SSWMethodWorkspace class categoriesFor: #indicatorStyles!public! !
-!SSWMethodWorkspace class categoriesFor: #initialize!class initialization!public! !
-!SSWMethodWorkspace class categoriesFor: #spyIndicatorStyles!public! !
-!SSWMethodWorkspace class categoriesFor: #uninitialize!class initialization!public! !
+	SmalltalkSystem current methodWorkspaceClass: MethodWorkspace!
+
+useDefaultKeyBindings
+
+	self acceleratorKeyBindings: self defaultKeyBindings!
+
+useLegacyKeyBindings
+
+	self acceleratorKeyBindings: self legacyKeyBindings! !
+!SSWMethodWorkspace class categoriesForMethods!
+defaultKeyBindings!constants!public! !
+indicatorStyles!public! !
+initialize!class initialization!public! !
+legacyKeyBindings!constants!public! !
+spyIndicatorStyles!public! !
+uninitialize!class initialization!public! !
+useDefaultKeyBindings!class initialization!public! !
+useLegacyKeyBindings!class initialization!public! !
+!
 

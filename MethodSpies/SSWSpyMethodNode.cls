@@ -1,4 +1,4 @@
-﻿"Filed out from Dolphin Smalltalk 7"!
+﻿"Filed out from Dolphin Smalltalk"!
 
 StMethodNode subclass: #SSWSpyMethodNode
 	instanceVariableNames: 'methodSpies'
@@ -25,9 +25,11 @@ methodSpies
 methodSpies: aCollection
 
 	methodSpies := aCollection! !
-!SSWSpyMethodNode categoriesFor: #formattedCode!accessing!public! !
-!SSWSpyMethodNode categoriesFor: #methodSpies!accessing!public! !
-!SSWSpyMethodNode categoriesFor: #methodSpies:!accessing!public! !
+!SSWSpyMethodNode categoriesForMethods!
+formattedCode!accessing!public! !
+methodSpies!accessing!public! !
+methodSpies:!accessing!public! !
+!
 
 !SSWSpyMethodNode class methodsFor!
 
@@ -36,5 +38,7 @@ selectorParts: tokenCollection arguments: variableNodes
 	"Overriden to use the receiver class rather than hard-coded StMethodNode"
 
 	^((tokenCollection anySatisfy: [:each | each isPatternVariable]) ifTrue: [RBPatternMethodNode] ifFalse: [self]) new selectorParts: tokenCollection arguments: variableNodes! !
-!SSWSpyMethodNode class categoriesFor: #selectorParts:arguments:!instance creation!public! !
+!SSWSpyMethodNode class categoriesForMethods!
+selectorParts:arguments:!instance creation!public! !
+!
 
